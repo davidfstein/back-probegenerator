@@ -17,7 +17,6 @@ class S3Service {
         // Read content from the file
         const fileContent = fs.readFileSync(fileName);
     
-        console.log(bucket);
         // Setting up S3 upload parameters
         const params = {
             Bucket: bucket,

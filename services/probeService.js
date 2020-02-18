@@ -2,6 +2,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const { join } = require("path");
 const S3Service = require("./s3Service");
+const EC2Utils = require("../utils/ec2Utils");
 const { zip } = require('../utils/zipUtils');
 
 module.exports = app => {
@@ -20,6 +21,7 @@ module.exports = app => {
     const MAX_TM_KEY = "maxTm";
     const SALT_CONCENTRATION_KEY = "saltConcentration";
     const FORMAMIDE_KEY = "formamide";
+    const EMAIL_KEY = "email";
     const TEMP_DIRECTORY_PATH = "tmp";
     const BOWTIE_INDEX_DIRECTORY = "bowtie_indexes";
 
@@ -74,7 +76,15 @@ module.exports = app => {
         const T = `T=${formData[MAX_TM_KEY]}`;
         const s = `s=${formData[SALT_CONCENTRATION_KEY]}`;
         const F = `F=${formData[FORMAMIDE_KEY]}`;
-        const env_vars = [fastaPath, pathToBowtieIndex, bowtieIndexBasename, initiatorPath, desiredSpaces, l, L, g, G, t, T, s, F];
+        const fetch = `fetch=true`;
+        const aws_client_id = `AWS_ACCESS_KEY_ID=${process.env.AWS_ACCESS_KEY_ID}`;
+        const aws_secret_key = `AWS_SECRET_ACCESS_KEY=${process.env.AWS_SECRET_ACCESS_KEY}`;
+        const aws_default_region = `AWS_DEFAULT_REGION=${process.env.AWS_DEFAULT_REGION}`;
+        const sendgrid_key = `SENDGRID_API_KEY=${process.env.SENDGRID_API_KEY}`;
+        const email = `email=${formData[EMAIL_KEY]}`;
+        const env_vars = [fastaPath, pathToBowtieIndex, bowtieIndexBasename, initiatorPath, 
+                          desiredSpaces, l, L, g, G, t, T, s, F, fetch, 
+                          aws_client_id, aws_secret_key, aws_default_region, sendgrid_key, email];
 
         fs.writeFile(`${path}/env_file`, env_vars.join('\n'), {flag: 'w+'}, (err) => {
             if (err) throw err;
@@ -89,7 +99,7 @@ module.exports = app => {
         return path;
     }
 
-    generateProbes = (req, res) => {
+    generateProbes = async (req, res) => {
         const jobId = getJobId(req.files);
         const path = makeJobDirectory(jobId);
 
@@ -102,20 +112,15 @@ module.exports = app => {
 
         createEnvFile(req.fields, path);
 
-        zip(jobId, `${TEMP_DIRECTORY_PATH}`);
+        await zip(jobId, `${TEMP_DIRECTORY_PATH}`);
 
         const s3 = new S3Service();
         s3.uploadFile(`${TEMP_DIRECTORY_PATH}/${jobId}.zip`, "probegenerator-jobs", jobId);
 
-        // exec(`cd ${TEMP_DIRECTORY_PATH}/${jobId}; sudo docker run --env-file=env_file -v $(pwd):/data dstein96/probegenerator:0.7.50`, (error, stdout, stderr) => {
-        //     if (error) {
-        //         console.error(`exec error: ${error}`);
-        //         console.log(error.code);
-        //         return;
-        //     }
-        //     console.log(`stdout: ${stdout}`);
-        //     console.error(`stderr: ${stderr}`);
-        // });
+        // const ec2 = new EC2Utils();
+        // const instanceDetails = await ec2.launchInstance();
+        // console.log(instanceDetails);
+
         return res.sendStatus(200);
     }
 
