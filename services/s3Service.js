@@ -25,10 +25,10 @@ class S3Service {
         };
     
         // Uploading files to the bucket
-        this.s3.upload(params, (err, data) => {
+        return this.s3.upload(params, (err, data) => {
             if (err) throw err;
             console.log(`File uploaded successfully. ${data.Location}`);
-        });
+        }).promise();
     };
 }
 

@@ -14,13 +14,14 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
 app.use(formidable({
     uploadDir: './uploads',
 }));
 
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 require('./services/probeService')(app);
+require('./services/captchaService')(app);
 
 app.listen(process.env.PORT || 5000)

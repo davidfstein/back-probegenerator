@@ -1,8 +1,8 @@
-const { exec } = require('child_process');
 const fs = require('fs');
 const { join } = require("path");
+const rimraf = require("rimraf");
 const S3Service = require("./s3Service");
-const EC2Utils = require("../utils/ec2Utils");
+const CloudFormationUtils = require("../utils/cloudFormationUtils");
 const { zip } = require('../utils/zipUtils');
 
 module.exports = app => {
@@ -52,7 +52,6 @@ module.exports = app => {
                 i = i + INITIATOR_FIELD_NUM;
             } catch (err) {
                 throw Error("Malformed initiators.");
-                return;
             }
         }
         return initiatorFields;
@@ -100,32 +99,58 @@ module.exports = app => {
     }
 
     generateProbes = async (req, res) => {
-        const jobId = getJobId(req.files);
-        const path = makeJobDirectory(jobId);
+        try {
+            const jobId = getJobId(req.files);
+            const path = makeJobDirectory(jobId);
 
-        fs.renameSync(req.files[FILE_KEY][PATH_KEY], `${TEMP_DIRECTORY_PATH}/${jobId}/target.fa`, (err) => {
-            if (err) throw err;
+            fs.renameSync(req.files[FILE_KEY][PATH_KEY], `${TEMP_DIRECTORY_PATH}/${jobId}/target.fa`, (err) => {
+                if (err) throw err;
+            });
+
+            const initiators = parseInitiators(req.fields);
+            createInitiatorFile(initiators, path);
+
+            createEnvFile(req.fields, path);
+
+            await zip(jobId, `${TEMP_DIRECTORY_PATH}`);
+
+            const s3 = new S3Service();
+            await s3.uploadFile(`${TEMP_DIRECTORY_PATH}/${jobId}.zip`, "probegenerator-jobs", jobId);
+
+            const cloudFormation = new CloudFormationUtils();
+            const stackDetails = await cloudFormation.launchStack(jobId, req.fields[BOWTIE_INDEX_KEY]);
+            console.log(stackDetails);
+
+            cleanup(jobId);
+
+            return res.sendStatus(200);
+        } catch (err) {
+            console.log(err);
+            res.sendStatus(400);
+            throw err;
+        }
+    }
+
+    cleanup = (jobId) => {
+        const path = `${TEMP_DIRECTORY_PATH}/${jobId}`;
+
+        fs.unlink(path + '.zip', (err) => {
+            if (err) {
+              console.error(err)
+              throw err;
+            }
         });
 
-        const initiators = parseInitiators(req.fields);
-        createInitiatorFile(initiators, path);
-
-        createEnvFile(req.fields, path);
-
-        await zip(jobId, `${TEMP_DIRECTORY_PATH}`);
-
-        const s3 = new S3Service();
-        s3.uploadFile(`${TEMP_DIRECTORY_PATH}/${jobId}.zip`, "probegenerator-jobs", jobId);
-
-        // const ec2 = new EC2Utils();
-        // const instanceDetails = await ec2.launchInstance();
-        // console.log(instanceDetails);
-
-        return res.sendStatus(200);
+        rimraf(path, (err) => { 
+            if (err) {
+                console.error(err)
+                throw err;
+            }
+        });
     }
 
     getAvailableIndexes = (req, res) => {
-        const path = `${TEMP_DIRECTORY_PATH}/${BOWTIE_INDEX_DIRECTORY}`;
+        const path = `${BOWTIE_INDEX_DIRECTORY}`;
         const indexes = fs.readdirSync(path)
                           .filter(entry => fs.statSync(join(path, entry)).isDirectory());
         res.send(indexes);
