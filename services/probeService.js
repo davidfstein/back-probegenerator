@@ -100,7 +100,14 @@ module.exports = app => {
 
     generateProbes = async (req, res) => {
         try {
-            const jobId = getJobId(req.files);
+            const stackNameRegex = /[a-zA-Z][-a-zA-Z0-9]*/;
+            const job = getJobId(req.files);
+            const jobId;
+            if (job.match(stackNameRegex) !== job) {
+                jobId = 'a' + job;
+            } else {
+                jobId = job;
+            }
             const path = makeJobDirectory(jobId);
 
             fs.renameSync(req.files[FILE_KEY][PATH_KEY], `${TEMP_DIRECTORY_PATH}/${jobId}/target.fa`, (err) => {
