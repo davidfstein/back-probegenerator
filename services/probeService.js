@@ -102,7 +102,7 @@ module.exports = app => {
         try {
             const stackNameRegex = /[a-zA-Z][-a-zA-Z0-9]*/;
             const job = getJobId(req.files);
-            const jobId = job.match(stackNameRegex) !== job ? jobId = 'a' + job : jobId = job;
+            const jobId = job.match(stackNameRegex) !== job ? 'a' + job : job;
 
             const path = makeJobDirectory(jobId);
 
