@@ -12,7 +12,7 @@ Metadata:
 Parameters:
   JobS3KeyParam:
     Type: String
-  IndexS3KeyParam:
+  AMIID:
     Type: String
   AWSACCESSKEYID:
     Type: String
@@ -24,42 +24,17 @@ Resources:
   ProbeInstance:
     Type: 'AWS::EC2::Instance'
     Properties:
-      IamInstanceProfile: 'ec2S3Read'
-      ImageId: ami-062f7200baf2fa504
-      InstanceType: m5a.2xlarge
-      KeyName: probe-pair
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvda
-          Ebs:
-            VolumeSize: 100
-      SecurityGroupIds:
-        - sg-080c51b0e7e91923c
+      ImageId: !Ref AMIID
       UserData: !Base64 
         'Fn::Sub':
           - >
             #!/bin/bash
-
-            exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-
-            yum update -y
-
-            amazon-linux-extras install -y docker
-
-            service docker start
-
-            mkdir /home/ec2-user/probes
 
             cd /home/ec2-user/probes
 
             aws s3 cp s3://probegenerator-jobs/${JobS3Key} ./${JobS3Key}
 
             unzip ${JobS3Key}
-
-            aws s3 cp s3://probegenerator-indexes/${IndexS3KeyParam}.zip ./${IndexS3KeyParam}.zip
-
-            unzip ${IndexS3KeyParam}
-
-            rm ${IndexS3KeyParam}.zip
 
             export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 
@@ -73,7 +48,7 @@ Resources:
             then
                 cp /var/log/user-data.log ./user-data.log
                 touch truncated-log.log
-                tail -c+255 user-data.log >> truncated-log.log
+                tail -c+240 user-data.log >> truncated-log.log
                 aws sns publish --topic-arn arn:aws:sns:us-east-1:330723424119:probegenerator-errors --message file://truncated-log.log
             else
                 aws s3 rm s3://probegenerator-jobs/${JobS3Key}
@@ -81,7 +56,6 @@ Resources:
 
             aws cloudformation delete-stack --stack-name ${StackName}
           - JobS3Key: !Ref JobS3KeyParam
-            IndexS3KeyParam: !Ref IndexS3KeyParam
             AWS_ACCESS_KEY_ID: !Ref AWSACCESSKEYID
             AWS_SECRET_ACCESS_KEY: !Ref AWSSECRETACCESSKEY
             AWS_DEFAULT_REGION: !Ref AWSDEFAULTREGION
