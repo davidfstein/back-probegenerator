@@ -7,7 +7,7 @@ class CloudFormationUtils {
         this.cloudFormation = new AWS.CloudFormation({apiVersion: '2016-11-15', region:'us-east-1'});
     }
     
-    launchStack(stackName, indexName) {
+    launchStack(stackName, amiId) {
         const params = { 
             StackName: stackName,
             Parameters: [
@@ -16,8 +16,8 @@ class CloudFormationUtils {
                     ParameterValue: stackName,
                 },
                 {
-                    ParameterKey: 'IndexS3KeyParam',
-                    ParameterValue: indexName,
+                    ParameterKey: 'AMIID',
+                    ParameterValue: amiId
                 },
                 {
                     ParameterKey: 'AWSACCESSKEYID',
