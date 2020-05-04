@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const formidable = require('express-formidable');
-const Constants = require('./Constants');
+const Constants = require('./utils/Constants');
 
 app.use(cors({credentials: true, origin: true}));
 
