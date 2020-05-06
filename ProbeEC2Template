@@ -24,11 +24,24 @@ Resources:
   ProbeInstance:
     Type: 'AWS::EC2::Instance'
     Properties:
+      IamInstanceProfile: 'ec2S3Read'
       ImageId: !Ref AMIID
+      InstanceType: m5a.2xlarge
+      KeyName: probe-pair
+      SecurityGroupIds:
+        - sg-080c51b0e7e91923c
       UserData: !Base64 
         'Fn::Sub':
           - >
             #!/bin/bash
+
+            exec > >(tee /var/log/user-data2.log|logger -t user-data -s 2>/dev/console) 2>&1
+
+            yum install -y fio
+
+            fio --filename=/dev/xvda --rw=read --bs=128k --iodepth=32 --ioengine=libaio --direct=1 --name=volume-initialize
+
+            service docker start
 
             cd /home/ec2-user/probes
 
@@ -42,13 +55,13 @@ Resources:
 
             export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
 
-            docker run --env-file=env_file -v /home/ec2-user/probes:/data dstein96/probegenerator:0.85
+            docker run --env-file=env_file -v /home/ec2-user/probes:/data dstein96/probegenerator:0.86
 
             if [ $? != 0 ];
             then
-                cp /var/log/user-data.log ./user-data.log
+                cp /var/log/user-data2.log ./user-data2.log
                 touch truncated-log.log
-                tail -c+240 user-data.log >> truncated-log.log
+                tail -c+240 user-data2.log >> truncated-log.log
                 aws sns publish --topic-arn arn:aws:sns:us-east-1:330723424119:probegenerator-errors --message file://truncated-log.log
             else
                 aws s3 rm s3://probegenerator-jobs/${JobS3Key}
@@ -60,6 +73,3 @@ Resources:
             AWS_SECRET_ACCESS_KEY: !Ref AWSSECRETACCESSKEY
             AWS_DEFAULT_REGION: !Ref AWSDEFAULTREGION
             StackName: !Ref AWS::StackName
-    Metadata:
-      'AWS::CloudFormation::Designer':
-        id: cc991da5-6faf-40c2-be87-2eddebaa524e

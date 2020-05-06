@@ -62,7 +62,7 @@ module.exports = app => {
         return formData[FILE_KEY][PATH_KEY].split(UPLOAD_SPLITTER).slice(-1)[0];
     }
 
-    createEnvFile = (formData, path) => {
+    createEnvFile = (formData, jobId, path) => {
         const fastaPath = `seq_path=target.fa`;
         const pathToBowtieIndex = `path_to_bowtie_index=${formData[BOWTIE_INDEX_KEY]}`;
         const bowtieIndexBasename = `bowtie_index_basename=${formData[BOWTIE_INDEX_KEY]}`;
@@ -82,9 +82,10 @@ module.exports = app => {
         const aws_default_region = `AWS_DEFAULT_REGION=${process.env.AWS_DEFAULT_REGION}`;
         const sendgrid_key = `SENDGRID_API_KEY=${process.env.SENDGRID_API_KEY}`;
         const email = `email=${formData[EMAIL_KEY]}`;
+        const job_id_field = `job_id=${jobId}`
         const env_vars = [fastaPath, pathToBowtieIndex, bowtieIndexBasename, initiatorPath, 
                           desiredSpaces, l, L, g, G, t, T, s, F, fetch, 
-                          aws_client_id, aws_secret_key, aws_default_region, sendgrid_key, email];
+                          aws_client_id, aws_secret_key, aws_default_region, sendgrid_key, email, job_id_field];
 
         fs.writeFile(`${path}/env_file`, env_vars.join('\n'), {flag: 'w+'}, (err) => {
             if (err) throw err;
@@ -114,7 +115,7 @@ module.exports = app => {
             const initiators = parseInitiators(req.fields);
             createInitiatorFile(initiators, path);
 
-            createEnvFile(req.fields, path);
+            createEnvFile(req.fields, jobId, path);
 
             await zip(jobId, `${TEMP_DIRECTORY_PATH}`);
 
