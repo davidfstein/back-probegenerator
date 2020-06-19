@@ -55,7 +55,7 @@ Resources:
 
             export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
 
-            docker run --env-file=env_file -v /home/ec2-user/probes:/data dstein96/probegenerator:0.86
+            docker run --env-file=env_file -v /home/ec2-user/probes:/data dstein96/probegenerator:0.87
 
             if [ $? != 0 ];
             then
