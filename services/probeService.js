@@ -25,6 +25,7 @@ module.exports = app => {
     const EMAIL_KEY = "email";
     const TEMP_DIRECTORY_PATH = "tmp";
     const BOWTIE_INDEX_DIRECTORY = "bowtie_indexes";
+    const OUTPUT_CLEAN_KEY = "outputCleanSelect";
 
     createInitiatorFile = (initiators, path) => {
         fs.writeFile(`${path}/initiators.csv`, INITIATOR_HEADERS.join(',') + '\n', {flag: 'w+'}, (err) => {
@@ -77,15 +78,12 @@ module.exports = app => {
         const s = `s=${formData[SALT_CONCENTRATION_KEY]}`;
         const F = `F=${formData[FORMAMIDE_KEY]}`;
         const fetch = `fetch=true`;
-        const aws_client_id = `AWS_ACCESS_KEY_ID=${process.env.AWS_ACCESS_KEY_ID}`;
-        const aws_secret_key = `AWS_SECRET_ACCESS_KEY=${process.env.AWS_SECRET_ACCESS_KEY}`;
-        const aws_default_region = `AWS_DEFAULT_REGION=${process.env.AWS_DEFAULT_REGION}`;
-        const sendgrid_key = `SENDGRID_API_KEY=${process.env.SENDGRID_API_KEY}`;
+        const outputClean = `outputClean=${formData[OUTPUT_CLEAN_KEY]}`
         const email = `email=${formData[EMAIL_KEY]}`;
         const job_id_field = `job_id=${jobId}`
         const env_vars = [fastaPath, pathToBowtieIndex, bowtieIndexBasename, initiatorPath, 
                           desiredSpaces, l, L, g, G, t, T, s, F, fetch, 
-                          aws_client_id, aws_secret_key, aws_default_region, sendgrid_key, email, job_id_field];
+                          outputClean, email, job_id_field];
 
         fs.writeFile(`${path}/env_file`, env_vars.join('\n'), {flag: 'w+'}, (err) => {
             if (err) throw err;
