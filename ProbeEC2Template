@@ -12,7 +12,7 @@ Metadata:
 Parameters:
   JobS3KeyParam:
     Type: String
-  AMIID:
+  BowtieIndex:
     Type: String
   AWSACCESSKEYID:
     Type: String
@@ -25,9 +25,13 @@ Resources:
     Type: 'AWS::EC2::Instance'
     Properties:
       IamInstanceProfile: 'ec2S3Read'
-      ImageId: !Ref AMIID
+      ImageId: ami-062f7200baf2fa504
       InstanceType: m5a.2xlarge
-      KeyName: probe-pair
+      KeyName: david-pair
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 100
       SecurityGroupIds:
         - sg-080c51b0e7e91923c
       UserData: !Base64 
@@ -37,13 +41,17 @@ Resources:
 
             exec > >(tee /var/log/user-data2.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-            yum install -y fio
+            yum update -y
 
-            fio --filename=/dev/xvda --rw=read --bs=128k --iodepth=32 --ioengine=libaio --direct=1 --name=volume-initialize
+            amazon-linux-extras install -y docker
 
             service docker start
 
-            cd /home/ec2-user/probes
+            mkdir ${BowtieIndex} & cd ${BowtieIndex}
+
+            aws s3 cp s3://probegenerator-indexes/${BowtieIndex} --recursive & cd ..
+
+            mkdir /home/ec2-user/probes & cd /home/ec2-user/probes
 
             aws s3 cp s3://probegenerator-jobs/${JobS3Key} ./${JobS3Key}
 
@@ -69,6 +77,7 @@ Resources:
 
             aws cloudformation delete-stack --stack-name ${StackName}
           - JobS3Key: !Ref JobS3KeyParam
+            BowtieIndex: !Ref BowtieIndex
             AWS_ACCESS_KEY_ID: !Ref AWSACCESSKEYID
             AWS_SECRET_ACCESS_KEY: !Ref AWSSECRETACCESSKEY
             AWS_DEFAULT_REGION: !Ref AWSDEFAULTREGION

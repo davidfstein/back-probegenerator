@@ -121,7 +121,7 @@ module.exports = app => {
             await s3.uploadFile(`${TEMP_DIRECTORY_PATH}/${jobId}.zip`, "probegenerator-jobs", jobId);
 
             const cloudFormation = new CloudFormationUtils();
-            const stackDetails = await cloudFormation.launchStack(jobId, Constants.INDEX_AMIS[req.fields[BOWTIE_INDEX_KEY]]);
+            const stackDetails = await cloudFormation.launchStack(jobId, Constants.INDEX_KEYS[req.fields[BOWTIE_INDEX_KEY]]);
             console.log(stackDetails);
 
             cleanup(jobId);

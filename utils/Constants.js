@@ -5,10 +5,10 @@ const Constants = {
     LAUNCH_TEMPLATE_VERSION: "2",
     PROBE_STACK_URL: "https://probegenerator-stack.s3.amazonaws.com/ProbeEC2Template",
     FRONTEND_URL: "https://probegenerator.herokuapp.com",
-    INDEX_AMIS: {
-        axo_index: "ami-01ee54d81642d8502",
-        human_GRCh38: "ami-0fed54a614a608c70",
-        mm10: "ami-07e12e4e56a76fc50"
+    INDEX_KEYS: {
+        axo_index: "axo_index",
+        human_GRCh38: "human_GRCh38",
+        mm10: "mm10"
     }
 }
 
