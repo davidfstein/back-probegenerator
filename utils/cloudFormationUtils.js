@@ -4,7 +4,7 @@ const Constants = require('./Constants');
 class CloudFormationUtils {
 
     constructor() {
-        this.cloudFormation = new AWS.CloudFormation({apiVersion: '2016-11-15', region:'us-east-1'});
+        this.cloudFormation = new AWS.CloudFormation({apiVersion: '2016-11-15', region:'us-east-2'});
     }
     
     launchStack(stackName, indexKey) {

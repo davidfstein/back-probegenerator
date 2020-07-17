@@ -47,15 +47,15 @@ Resources:
 
             service docker start
 
-            mkdir ${BowtieIndex} & cd ${BowtieIndex}
+            mkdir /home/ec2-user/probes
+            cd /home/ec2-user/probes
+            mkdir /home/ec2-user/probes/${BowtieIndex}
 
-            aws s3 cp s3://probegenerator-indexes/${BowtieIndex} --recursive & cd ..
+            time aws s3 cp s3://probegenerator-indexes/${BowtieIndex} /home/ec2-user/probes/${BowtieIndex}/ --recursive
 
-            mkdir /home/ec2-user/probes & cd /home/ec2-user/probes
+            aws s3 cp s3://probegenerator-jobs/${JobS3Key} /home/ec2-user/probes/${JobS3Key}
 
-            aws s3 cp s3://probegenerator-jobs/${JobS3Key} ./${JobS3Key}
-
-            unzip ${JobS3Key}
+            unzip -d /home/ec2-user/probes/ /home/ec2-user/probes/${JobS3Key}
 
             export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
 
@@ -63,7 +63,7 @@ Resources:
 
             export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
 
-            docker run --env-file=env_file -v /home/ec2-user/probes:/data dstein96/probegenerator:0.89
+            docker run --env-file=/home/ec2-user/probes/env_file -v /home/ec2-user/probes:/data dstein96/probegenerator:0.89
 
             if [ $? != 0 ];
             then
