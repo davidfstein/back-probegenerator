@@ -8,7 +8,8 @@ const Constants = {
     INDEX_KEYS: {
         axo_index: "axo_index",
         human_GRCh38: "human_GRCh38",
-        mm10: "mm10"
+        mm10: "mm10",
+        pwal: "pwal"
     }
 }
 
