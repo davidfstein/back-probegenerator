@@ -7,16 +7,17 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "archiver": "^3.1.1",
+    "archiver": "^5.3.1",
     "aws-sdk": "^2.612.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "express-formidable": "^1.2.0",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "2.6.6",
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.2"
-  }
+  },
+  "packageManager": "yarn@1.22.19"
 }
