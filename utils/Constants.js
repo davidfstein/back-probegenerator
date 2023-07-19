@@ -9,7 +9,9 @@ const Constants = {
         axo_index: "axo_index",
         human_GRCh38: "human_GRCh38",
         mm10: "mm10",
-        pwal: "pwal"
+        pwal: "pwal",
+        xenTro10: 'xenTro10',
+        danRer11: 'danRer11',
     }
 }
 
