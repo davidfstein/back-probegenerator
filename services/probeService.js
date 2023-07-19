@@ -153,10 +153,7 @@ module.exports = app => {
     }
 
     getAvailableIndexes = (req, res) => {
-        const path = `${BOWTIE_INDEX_DIRECTORY}`;
-        const indexes = fs.readdirSync(path)
-                          .filter(entry => fs.statSync(join(path, entry)).isDirectory());
-        res.send(indexes);
+        res.send(Constants.INDEX_KEYS.keys());
     }
   
     app.post('/api/generateProbes', generateProbes);
