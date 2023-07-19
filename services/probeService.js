@@ -153,7 +153,7 @@ module.exports = app => {
     }
 
     getAvailableIndexes = (req, res) => {
-        res.send(Constants['INDEX_KEYS'].keys());
+	res.send(Object.keys(Constants.INDEX_KEYS));
     }
   
     app.post('/api/generateProbes', generateProbes);
